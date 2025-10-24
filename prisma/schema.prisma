@@ -27,9 +27,12 @@ model Account {
   id               String   @id @default(cuid())
   userId           String
   plaidAccessToken String   // Encrypted Plaid access token
-  plaidItemId      String   @unique // Plaid item ID
+  plaidItemId      String   // Plaid item ID (not unique - one bank can have multiple accounts)
   institutionName  String
   accountType      String   // e.g., "checking", "savings", "credit"
+  accountName      String?  // Display name from Plaid
+  accountSubtype   String?  // Subtype from Plaid (e.g., "checking", "savings")
+  lastSync         DateTime? // Last successful sync with Plaid
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -37,19 +40,24 @@ model Account {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
+  // Ensure no duplicate accounts for same user and bank
+  @@unique([userId, plaidItemId, accountName])
   @@map("accounts")
 }
 
 model Transaction {
-  id        String   @id @default(cuid())
-  accountId String
-  amount    Float    // Positive for income, negative for expenses
-  date      DateTime
-  name      String
-  category  String?  // Transaction category
-  pending   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  accountId            String
+  amount               Float    // Positive for income, negative for expenses
+  date                 DateTime
+  name                 String
+  category             String?  // Transaction category
+  pending              Boolean  @default(false)
+  plaidTransactionId   String?  @unique // Plaid transaction ID for deduplication
+  merchantName         String?  // Merchant name from Plaid
+  location             Json?    // Location data from Plaid (address, city, etc.)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   // Relations
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
