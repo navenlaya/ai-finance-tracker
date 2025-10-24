@@ -24,6 +24,7 @@ let globalLinkTokenPromise: Promise<string> | null = null
 let globalPlaidInstance: any = null
 let isPlaidInitialized = false
 let activePlaidComponent: any = null
+let plaidLinkCount = 0
 
 export default function PlaidLink({ 
   onSuccess, 
@@ -169,11 +170,20 @@ export default function PlaidLink({
 
   // Prevent multiple Plaid Link instances
   useEffect(() => {
-    if (globalPlaidInstance && globalPlaidInstance !== open) {
-      console.warn('Multiple Plaid Link instances detected. This may cause issues.')
+    plaidLinkCount++
+    console.log(`PlaidLink component mounted. Total instances: ${plaidLinkCount}`)
+    
+    if (plaidLinkCount > 1) {
+      console.warn(`Multiple Plaid Link instances detected (${plaidLinkCount}). This may cause issues.`)
     }
+    
     if (!globalPlaidInstance) {
       globalPlaidInstance = open
+    }
+    
+    return () => {
+      plaidLinkCount--
+      console.log(`PlaidLink component unmounted. Remaining instances: ${plaidLinkCount}`)
     }
   }, [open])
 
@@ -191,25 +201,24 @@ export default function PlaidLink({
 
   // Auto-fetch link token when component mounts (only once globally)
   useEffect(() => {
-    // Only allow one active PlaidLink component at a time
-    if (!activePlaidComponent) {
-      activePlaidComponent = { fetchLinkToken, onSuccess, onError, onDataRefresh }
-      if (!isPlaidInitialized) {
-        isPlaidInitialized = true
-        fetchLinkToken()
-      }
-    } else {
-      console.warn('Multiple PlaidLink components detected. Only one can be active at a time.')
-      // Don't disable the button, just don't initialize Plaid Link
+    // Only initialize Plaid Link once globally
+    if (!isPlaidInitialized) {
+      isPlaidInitialized = true
+      fetchLinkToken()
     }
 
     // Cleanup when component unmounts
     return () => {
-      if (activePlaidComponent && activePlaidComponent.fetchLinkToken === fetchLinkToken) {
+      // Reset global state when all components are unmounted
+      if (plaidLinkCount === 0) {
+        globalLinkToken = null
+        globalLinkTokenPromise = null
+        globalPlaidInstance = null
+        isPlaidInitialized = false
         activePlaidComponent = null
       }
     }
-  }, [fetchLinkToken, onSuccess, onError, onDataRefresh])
+  }, [fetchLinkToken])
 
   return (
     <div className={className}>

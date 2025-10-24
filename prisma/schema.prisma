@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,12 +8,10 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id        String    @id @default(cuid())
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   accounts  Account[]
   insights  Insight[]
 
@@ -24,43 +19,38 @@ model User {
 }
 
 model Account {
-  id               String   @id @default(cuid())
+  id               String        @id @default(cuid())
   userId           String
-  plaidAccessToken String   // Encrypted Plaid access token
-  plaidItemId      String   // Plaid item ID (not unique - one bank can have multiple accounts)
+  plaidAccessToken String
+  plaidItemId      String
   institutionName  String
-  accountType      String   // e.g., "checking", "savings", "credit"
-  accountName      String?  // Display name from Plaid
-  accountSubtype   String?  // Subtype from Plaid (e.g., "checking", "savings")
-  lastSync         DateTime? // Last successful sync with Plaid
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  accountType      String
+  accountName      String?
+  accountSubtype   String?
+  lastSync         DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions     Transaction[]
 
-  // Relations
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-
-  // Ensure no duplicate accounts for same user and bank
   @@unique([userId, plaidItemId, accountName])
   @@map("accounts")
 }
 
 model Transaction {
-  id                   String   @id @default(cuid())
-  accountId            String
-  amount               Float    // Positive for income, negative for expenses
-  date                 DateTime
-  name                 String
-  category             String?  // Transaction category
-  pending              Boolean  @default(false)
-  plaidTransactionId   String?  @unique // Plaid transaction ID for deduplication
-  merchantName         String?  // Merchant name from Plaid
-  location             Json?    // Location data from Plaid (address, city, etc.)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  // Relations
-  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  accountId          String
+  amount             Float
+  date               DateTime
+  name               String
+  category           String?
+  pending            Boolean  @default(false)
+  plaidTransactionId String?  @unique
+  merchantName       String?
+  location           Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  account            Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@map("transactions")
 }
@@ -68,13 +58,11 @@ model Transaction {
 model Insight {
   id        String   @id @default(cuid())
   userId    String
-  content   String   // AI-generated insight content
-  type      String   // e.g., "spending_pattern", "budget_alert", "savings_opportunity"
+  content   String
+  type      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("insights")
 }

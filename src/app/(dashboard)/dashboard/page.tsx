@@ -14,7 +14,9 @@ import {
   Building2,
   Loader2,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react'
 import { 
   formatCurrency, 
@@ -58,13 +60,26 @@ interface DashboardMetrics {
   transactionCount: number
 }
 
+interface Insight {
+  id: string
+  title: string
+  description: string
+  category: 'spending' | 'budget' | 'savings' | 'income' | 'general' | 'cost reduction'
+  priority: 'high' | 'medium' | 'low'
+  potentialSavings?: number
+  confidence?: number
+  createdAt: string
+}
+
 export default function DashboardPage() {
   const { user } = useUser()
   const router = useRouter()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [insights, setInsights] = useState<Insight[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -72,9 +87,10 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true)
-      const [accountsResponse, metricsResponse] = await Promise.all([
+      const [accountsResponse, metricsResponse, insightsResponse] = await Promise.all([
         fetch('/api/plaid/accounts'),
-        fetch('/api/plaid/dashboard-metrics')
+        fetch('/api/plaid/dashboard-metrics'),
+        fetch('/api/insights?limit=3')
       ])
       
       if (!accountsResponse.ok) {
@@ -87,6 +103,11 @@ export default function DashboardPage() {
       if (metricsResponse.ok) {
         const metricsData = await metricsResponse.json()
         setMetrics(metricsData)
+      }
+
+      if (insightsResponse.ok) {
+        const insightsData = await insightsResponse.json()
+        setInsights(insightsData.insights || [])
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -136,6 +157,39 @@ export default function DashboardPage() {
       fetchDashboardData() // Fetch fresh data
     }, 1000) // 1 second delay to prevent rapid successive calls
   }, [])
+
+  // Generate AI insights
+  const generateInsights = async () => {
+    try {
+      setIsGeneratingInsights(true)
+      const response = await fetch('/api/insights/generate', {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate insights')
+      }
+
+      const data = await response.json()
+      setInsights(data.insights.map((insight: any) => ({
+        ...insight,
+        ...insight.parsedContent
+      })))
+
+      // Show warning if insights weren't saved
+      if (data.warning) {
+        setError(data.warning)
+      }
+
+      console.log(`Generated ${data.insights.length} insights`)
+    } catch (error) {
+      console.error('Error generating insights:', error)
+      setError(error instanceof Error ? error.message : 'Failed to generate insights')
+    } finally {
+      setIsGeneratingInsights(false)
+    }
+  }
 
   // Load data on component mount
   useEffect(() => {
@@ -315,10 +369,10 @@ export default function DashboardPage() {
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{insights.length}</div>
             <p className="text-xs text-muted-foreground">
               {accounts.length > 0 
-                ? 'Coming soon'
+                ? insights.length > 0 ? 'Active insights' : 'Generate insights'
                 : 'Connect accounts to get insights'
               }
             </p>
@@ -400,21 +454,102 @@ export default function DashboardPage() {
         {/* AI Insights */}
         <Card>
           <CardHeader>
-            <CardTitle>AI Insights</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>AI Insights</span>
+              {insights.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/insights')}
+                >
+                  View All
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </CardTitle>
             <CardDescription>
               Personalized financial recommendations
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {accounts.length > 0 
-                  ? 'AI insights are coming soon! We\'re working on personalized recommendations based on your spending patterns.'
-                  : 'Connect your accounts to receive AI-powered insights about your spending patterns.'
-                }
-              </p>
-            </div>
+            {insights.length > 0 ? (
+              <div className="space-y-4">
+                {insights.slice(0, 2).map((insight) => (
+                  <div key={insight.id} className="border rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className={`p-2 rounded-lg ${
+                        insight.priority === 'high' ? 'bg-red-100 text-red-600' :
+                        insight.priority === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                        'bg-green-100 text-green-600'
+                      }`}>
+                        <Brain className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                          {insight.description}
+                        </p>
+                        {insight.potentialSavings && (
+                          <div className="mt-2 text-sm font-medium text-green-600">
+                            Save ${insight.potentialSavings.toFixed(0)}/month
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {insights.length > 2 && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => router.push('/insights')}
+                  >
+                    View All {insights.length} Insights
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="font-medium text-gray-900 mb-2">Get AI-Powered Insights</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {accounts.length > 0 
+                    ? 'Analyze your spending patterns and get personalized recommendations.'
+                    : 'Connect your accounts to receive AI-powered insights about your spending patterns.'
+                  }
+                </p>
+                {accounts.length > 0 ? (
+                  <Button
+                    onClick={generateInsights}
+                    disabled={isGeneratingInsights}
+                    className="w-full"
+                  >
+                    {isGeneratingInsights ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate Insights
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => router.push('/connect-bank')}
+                    className="w-full"
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Connect Bank Account
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -440,10 +575,15 @@ export default function DashboardPage() {
             <Button 
               variant="outline" 
               className="h-20 flex flex-col items-center justify-center"
-              disabled={accounts.length === 0}
+              onClick={generateInsights}
+              disabled={accounts.length === 0 || isGeneratingInsights}
             >
-              <Brain className="h-6 w-6 mb-2" />
-              Generate Insights
+              {isGeneratingInsights ? (
+                <Loader2 className="h-6 w-6 mb-2 animate-spin" />
+              ) : (
+                <Brain className="h-6 w-6 mb-2" />
+              )}
+              {isGeneratingInsights ? 'Generating...' : 'Generate Insights'}
             </Button>
             <Button 
               variant="outline" 

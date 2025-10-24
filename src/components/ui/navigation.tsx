@@ -21,6 +21,9 @@ export function Navigation() {
               <Link href="/dashboard">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
+              <Link href="/insights">
+                <Button variant="ghost">Insights</Button>
+              </Link>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-muted-foreground">
                   Welcome, {user?.firstName}
