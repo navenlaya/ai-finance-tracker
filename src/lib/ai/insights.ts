@@ -15,19 +15,12 @@ export async function generateSpendingAnalysis(transactions: Transaction[]): Pro
   const spendingByCategory = calculateSpendingByCategory(transactions)
   const monthlyAverages = calculateMonthlyAverages(transactions)
 
-  const prompt = `You are a financial advisor AI. Analyze these spending patterns and provide specific, actionable insights.
+  const prompt = `You are a financial advisor AI. Analyze these recent transactions and provide specific, actionable insights.
 
-Transactions (JSON):
+Recent transactions (last 30 days):
 ${transactionsData}
 
-Spending by category: ${JSON.stringify(spendingByCategory, null, 2)}
-Monthly averages: ${JSON.stringify(monthlyAverages, null, 2)}
-
-Focus on:
-- Spending patterns and trends
-- Unusual or concerning expenses
-- Categories with high spending
-- Opportunities to optimize spending
+Focus on spending patterns, unusual expenses, and optimization opportunities.
 
 Return ONLY valid JSON (no markdown, no code blocks, no explanations) in this EXACT format:
 {
@@ -57,7 +50,7 @@ Requirements:
         { role: 'user', content: prompt }
       ], {
         temperature: 0.3,
-        maxTokens: 1000
+        maxTokens: 800
       })
     })
 
@@ -100,20 +93,13 @@ export async function generateBudgetRecommendations(
   const spendingByCategory = calculateSpendingByCategory(transactions)
   const monthlyAverages = calculateMonthlyAverages(transactions)
 
-  const prompt = `You are a financial advisor AI. Analyze spending patterns and suggest realistic monthly budgets.
+  const prompt = `You are a financial advisor AI. Analyze these transactions and suggest realistic monthly budgets.
 
-Transactions (JSON):
+Recent transactions:
 ${transactionsData}
-
-Current spending by category: ${JSON.stringify(spendingByCategory, null, 2)}
-Monthly averages: ${JSON.stringify(monthlyAverages, null, 2)}
 ${monthlyIncome ? `Monthly income: $${monthlyIncome}` : 'Monthly income: Not provided'}
 
-Focus on:
-- Realistic budget recommendations per category
-- Areas where spending can be reduced
-- Categories that are over/under budget
-- Specific dollar amounts for budgets
+Focus on realistic budget recommendations per category with specific dollar amounts.
 
 Return ONLY valid JSON (no markdown, no code blocks, no explanations) in this EXACT format:
 {
@@ -141,7 +127,7 @@ Requirements:
         { role: 'user', content: prompt }
       ], {
         temperature: 0.3,
-        maxTokens: 1000
+        maxTokens: 800
       })
     })
 
@@ -175,19 +161,12 @@ export async function generateSavingsOpportunities(transactions: Transaction[]):
   const transactionsData = formatTransactionsForAI(transactions)
   const recurringSavings = calculateRecurringSavings(transactions)
 
-  const prompt = `You are a financial advisor AI. Identify specific savings opportunities from spending patterns.
+  const prompt = `You are a financial advisor AI. Identify specific savings opportunities from these transactions.
 
-Transactions (JSON):
+Recent transactions:
 ${transactionsData}
 
-Recurring expenses analysis: ${JSON.stringify(recurringSavings, null, 2)}
-
-Focus on:
-- Recurring subscriptions and memberships
-- Expensive daily habits (coffee, dining out, etc.)
-- High-fee transactions
-- Unnecessary or unused services
-- Specific actions to save money
+Focus on recurring subscriptions, expensive habits, and specific actions to save money.
 
 Return ONLY valid JSON (no markdown, no code blocks, no explanations) in this EXACT format:
 {
@@ -216,7 +195,7 @@ Requirements:
         { role: 'user', content: prompt }
       ], {
         temperature: 0.4,
-        maxTokens: 1000
+        maxTokens: 800
       })
     })
 

@@ -16,7 +16,9 @@ import {
   RefreshCw,
   AlertCircle,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Calendar,
+  BarChart3
 } from 'lucide-react'
 import { 
   formatCurrency, 
@@ -26,6 +28,18 @@ import {
   getCategoryIcon,
   formatTransactionAmount
 } from '@/lib/plaid/utils'
+import { Transaction } from '@prisma/client'
+
+// Import new dashboard components
+import { SpendingByCategoryChart } from '@/components/dashboard/SpendingByCategoryChart'
+import { SpendingTrendChart } from '@/components/dashboard/SpendingTrendChart'
+import { MonthlyComparisonChart } from '@/components/dashboard/MonthlyComparisonChart'
+import { IncomeVsExpensesCard } from '@/components/dashboard/IncomeVsExpensesCard'
+import { TotalSpendingCard } from '@/components/dashboard/TotalSpendingCard'
+import { TopCategoryCard } from '@/components/dashboard/TopCategoryCard'
+import { LargestTransactionCard } from '@/components/dashboard/LargestTransactionCard'
+import { AverageDailySpendCard } from '@/components/dashboard/AverageDailySpendCard'
+import { TransactionList } from '@/components/transactions/TransactionList'
 
 interface Account {
   id: string
@@ -36,28 +50,13 @@ interface Account {
   institution: string
   error?: string
   needs_reauth?: boolean
-  transactions: Array<{
-    id: string
-    amount: number
-    date: Date
-    name: string
-    category: string | null
-    pending: boolean
-  }>
+  transactions: Transaction[]
 }
 
 interface DashboardData {
   accounts: Account[]
   total_balance: number
   accounts_count: number
-}
-
-interface DashboardMetrics {
-  monthlyIncome: number
-  monthlyExpenses: number
-  netIncome: number
-  savingsRate: number
-  transactionCount: number
 }
 
 interface Insight {
@@ -75,7 +74,7 @@ export default function DashboardPage() {
   const { user } = useUser()
   const router = useRouter()
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
   const [insights, setInsights] = useState<Insight[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -87,9 +86,9 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true)
-      const [accountsResponse, metricsResponse, insightsResponse] = await Promise.all([
+      const [accountsResponse, transactionsResponse, insightsResponse] = await Promise.all([
         fetch('/api/plaid/accounts'),
-        fetch('/api/plaid/dashboard-metrics'),
+        fetch('/api/transactions'),
         fetch('/api/insights?limit=3')
       ])
       
@@ -100,9 +99,9 @@ export default function DashboardPage() {
       const accountsData = await accountsResponse.json()
       setDashboardData(accountsData)
 
-      if (metricsResponse.ok) {
-        const metricsData = await metricsResponse.json()
-        setMetrics(metricsData)
+      if (transactionsResponse.ok) {
+        const transactionsData = await transactionsResponse.json()
+        setAllTransactions(transactionsData.transactions || [])
       }
 
       if (insightsResponse.ok) {
@@ -219,13 +218,22 @@ export default function DashboardPage() {
   // Calculate financial metrics
   const totalBalance = dashboardData?.total_balance || 0
   const accounts = dashboardData?.accounts || []
-  const allTransactions = accounts.flatMap(account => account.transactions)
   
-  // Use fetched metrics if available, otherwise calculate from limited transactions
-  const monthlyIncome = metrics?.monthlyIncome ?? calculateMonthlyIncome(allTransactions)
-  const monthlyExpenses = metrics?.monthlyExpenses ?? calculateMonthlyExpenses(allTransactions)
-  const netIncome = metrics?.netIncome ?? (monthlyIncome - monthlyExpenses)
-  const savingsRate = metrics?.savingsRate ?? (monthlyIncome > 0 ? (netIncome / monthlyIncome) * 100 : 0)
+  // Convert transactions to the format expected by utility functions
+  const formattedTransactions = allTransactions.map(t => ({
+    id: t.id,
+    amount: t.amount,
+    date: t.date,
+    name: t.name,
+    category: t.category,
+    pending: t.pending
+  }))
+  
+  // Calculate metrics from all transactions
+  const monthlyIncome = calculateMonthlyIncome(formattedTransactions)
+  const monthlyExpenses = calculateMonthlyExpenses(formattedTransactions)
+  const netIncome = monthlyIncome - monthlyExpenses
+  const savingsRate = monthlyIncome > 0 ? (netIncome / monthlyIncome) * 100 : 0
 
   if (isLoading) {
     return (
@@ -240,8 +248,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
+      {/* SECTION 1: Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome back, {user?.firstName}!
@@ -250,7 +258,11 @@ export default function DashboardPage() {
             Here's an overview of your financial health.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Calendar className="w-4 h-4" />
+            <span>Last synced: {new Date().toLocaleDateString()}</span>
+          </div>
           {accounts.length > 0 && (
             <Button
               onClick={syncTransactions}
@@ -265,7 +277,7 @@ export default function DashboardPage() {
               ) : (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  Sync
+                  Sync Transactions
                 </>
               )}
             </Button>
@@ -289,95 +301,12 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* Stats Grid */}
+      {/* SECTION 2: Summary Cards (Top Row) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(totalBalance)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {accounts.length > 0 
-                ? `${accounts.length} account${accounts.length !== 1 ? 's' : ''} connected`
-                : 'No accounts connected yet'
-              }
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              +{formatCurrency(monthlyIncome)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {allTransactions.length > 0 
-                ? 'This month'
-                : 'No transactions yet'
-              }
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Expenses</CardTitle>
-            <CreditCard className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              -{formatCurrency(monthlyExpenses)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {allTransactions.length > 0 
-                ? 'This month'
-                : 'No transactions yet'
-              }
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {netIncome >= 0 ? '+' : ''}{formatCurrency(netIncome)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {savingsRate > 0 
-                ? `${savingsRate.toFixed(1)}% savings rate`
-                : 'Income - Expenses'
-              }
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Insights</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{insights.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {accounts.length > 0 
-                ? insights.length > 0 ? 'Active insights' : 'Generate insights'
-                : 'Connect accounts to get insights'
-              }
-            </p>
-          </CardContent>
-        </Card>
+        <IncomeVsExpensesCard transactions={allTransactions} />
+        <TotalSpendingCard transactions={allTransactions} />
+        <TopCategoryCard transactions={allTransactions} />
+        <AverageDailySpendCard transactions={allTransactions} />
       </div>
 
       {/* Connection Status */}
@@ -389,93 +318,23 @@ export default function DashboardPage() {
         onDataRefresh={handleDataRefresh}
       />
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Transactions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>
-              Your latest financial activity
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {allTransactions.length > 0 ? (
-              <div className="space-y-3">
-                {allTransactions.slice(0, 5).map((transaction) => {
-                  const IconComponent = getCategoryIcon(transaction.category)
-                  return (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <IconComponent className="h-5 w-5 text-gray-500" />
-                        <div>
-                          <p className="font-medium">{transaction.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {transaction.category || 'Uncategorized'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {(() => {
-                          const amountInfo = formatTransactionAmount(transaction.amount)
-                          return (
-                            <>
-                              <p className={`font-semibold flex items-center justify-end gap-1 ${amountInfo.color}`}>
-                                <span>{amountInfo.icon}</span>
-                                {amountInfo.display}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(transaction.date).toLocaleDateString()}
-                              </p>
-                            </>
-                          )
-                        })()}
-                      </div>
-                    </div>
-                  )
-                })}
-                {allTransactions.length > 5 && (
-                  <Button variant="outline" className="w-full mt-3">
-                    View All Transactions
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  No transactions yet. Connect your bank account to get started.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* AI Insights */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>AI Insights</span>
-              {insights.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push('/insights')}
-                >
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Personalized financial recommendations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {insights.length > 0 ? (
-              <div className="space-y-4">
-                {insights.slice(0, 2).map((insight) => (
-                  <div key={insight.id} className="border rounded-lg p-4">
+      {/* SECTION 3: AI Insights (Prominent) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-blue-600" />
+            AI-Powered Insights
+          </CardTitle>
+          <CardDescription>
+            Personalized financial recommendations based on your spending patterns
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {insights.length > 0 ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {insights.slice(0, 3).map((insight) => (
+                  <div key={insight.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start space-x-3">
                       <div className={`p-2 rounded-lg ${
                         insight.priority === 'high' ? 'bg-red-100 text-red-600' :
@@ -498,61 +357,78 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
-                {insights.length > 2 && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push('/insights')}
-                  >
-                    View All {insights.length} Insights
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="font-medium text-gray-900 mb-2">Get AI-Powered Insights</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  {accounts.length > 0 
-                    ? 'Analyze your spending patterns and get personalized recommendations.'
-                    : 'Connect your accounts to receive AI-powered insights about your spending patterns.'
-                  }
-                </p>
-                {accounts.length > 0 ? (
-                  <Button
-                    onClick={generateInsights}
-                    disabled={isGeneratingInsights}
-                    className="w-full"
-                  >
-                    {isGeneratingInsights ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Generate Insights
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => router.push('/connect-bank')}
-                    className="w-full"
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Connect Bank Account
-                  </Button>
-                )}
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/insights')}
+                >
+                  View All Insights
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Get AI-Powered Insights</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {accounts.length > 0 
+                  ? 'Analyze your spending patterns and get personalized recommendations to improve your financial health.'
+                  : 'Connect your accounts to receive AI-powered insights about your spending patterns.'
+                }
+              </p>
+              {accounts.length > 0 ? (
+                <Button
+                  onClick={generateInsights}
+                  disabled={isGeneratingInsights}
+                  size="lg"
+                >
+                  {isGeneratingInsights ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Insights...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate Insights
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => router.push('/connect-bank')}
+                  size="lg"
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Connect Bank Account
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* SECTION 4: Charts (2-column grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column - Spending Trend Chart */}
+        <SpendingTrendChart transactions={allTransactions} />
+        
+        {/* Right column - Category and Comparison Charts */}
+        <div className="space-y-6">
+          <SpendingByCategoryChart transactions={allTransactions} />
+          <MonthlyComparisonChart transactions={allTransactions} />
+        </div>
       </div>
+
+      {/* SECTION 5: Recent Transactions */}
+      <TransactionList 
+        transactions={allTransactions.slice(0, 10)} 
+        isLoading={false}
+      />
 
       {/* Quick Actions */}
       <Card>
@@ -563,7 +439,7 @@ export default function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Button 
               variant="outline" 
               className="h-20 flex flex-col items-center justify-center"
@@ -588,6 +464,16 @@ export default function DashboardPage() {
             <Button 
               variant="outline" 
               className="h-20 flex flex-col items-center justify-center"
+              onClick={() => router.push('/transactions')}
+              disabled={accounts.length === 0}
+            >
+              <BarChart3 className="h-6 w-6 mb-2" />
+              View All Transactions
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center justify-center"
+              onClick={() => router.push('/insights')}
               disabled={accounts.length === 0}
             >
               <TrendingUp className="h-6 w-6 mb-2" />

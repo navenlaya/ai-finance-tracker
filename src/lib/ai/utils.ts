@@ -2,21 +2,21 @@ import { Transaction } from '@prisma/client'
 
 /**
  * Format transactions for AI analysis - only include necessary fields
- * Limits to last 90 days and sorts by date descending
+ * Limits to last 30 days and max 50 transactions to stay within token limits
  */
 export function formatTransactionsForAI(transactions: Transaction[]): string {
-  const ninetyDaysAgo = new Date()
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   
   const filteredTransactions = transactions
-    .filter(t => t.date >= ninetyDaysAgo)
+    .filter(t => t.date >= thirtyDaysAgo)
     .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 50) // Limit to 50 most recent transactions
     .map(t => ({
       amount: t.amount,
       category: t.category || 'uncategorized',
       date: t.date.toISOString().split('T')[0], // YYYY-MM-DD format
       name: t.name,
-      merchantName: t.merchantName || null,
     }))
   
   return JSON.stringify(filteredTransactions, null, 2)

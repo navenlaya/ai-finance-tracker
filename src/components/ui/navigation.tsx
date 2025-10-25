@@ -24,6 +24,9 @@ export function Navigation() {
               <Link href="/insights">
                 <Button variant="ghost">Insights</Button>
               </Link>
+              <Link href="/transactions">
+                <Button variant="ghost">Transactions</Button>
+              </Link>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-muted-foreground">
                   Welcome, {user?.firstName}

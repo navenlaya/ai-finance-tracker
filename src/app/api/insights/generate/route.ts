@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       allTransactions,
       monthlyIncome,
       existingInsights,
-      lastGenerated
+      lastGenerated || undefined
     )
 
     if (fromCache) {
