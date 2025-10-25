@@ -4,6 +4,7 @@ import { plaidClient } from '@/lib/plaid/client'
 import { encrypt } from '@/lib/utils/encryption'
 import { db } from '@/lib/db'
 import { ItemPublicTokenExchangeRequest, AccountsGetRequest } from 'plaid'
+import { extractPlaidCategory } from '@/lib/plaid/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -238,7 +239,7 @@ export async function POST(request: NextRequest) {
             amount: plaidTransaction.amount,
             date: new Date(plaidTransaction.date),
             name: plaidTransaction.name,
-            category: plaidTransaction.category?.[0] || null,
+            category: extractPlaidCategory(plaidTransaction),
             pending: plaidTransaction.pending,
             plaidTransactionId: plaidTransaction.transaction_id,
             merchantName: plaidTransaction.merchant_name || null,

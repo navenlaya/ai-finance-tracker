@@ -4,6 +4,7 @@ import { decrypt } from '@/lib/utils/encryption'
 import { plaidClient } from '@/lib/plaid/client'
 import { handlePlaidWebhook, createErrorResponse } from '@/lib/plaid/error-handling'
 import { TransactionsSyncRequest } from 'plaid'
+import { extractPlaidCategory } from '@/lib/plaid/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -142,7 +143,7 @@ async function syncTransactionsForItem(itemId: string, newTransactions: number) 
           amount: plaidTransaction.amount,
           date: new Date(plaidTransaction.date),
           name: plaidTransaction.name,
-          category: plaidTransaction.category?.[0] || null,
+          category: extractPlaidCategory(plaidTransaction),
           pending: plaidTransaction.pending,
           merchantName: plaidTransaction.merchant_name || null,
           location: plaidTransaction.location || null,
@@ -153,7 +154,7 @@ async function syncTransactionsForItem(itemId: string, newTransactions: number) 
           amount: plaidTransaction.amount,
           date: new Date(plaidTransaction.date),
           name: plaidTransaction.name,
-          category: plaidTransaction.category?.[0] || null,
+          category: extractPlaidCategory(plaidTransaction),
           pending: plaidTransaction.pending,
           plaidTransactionId: plaidTransaction.transaction_id,
           merchantName: plaidTransaction.merchant_name || null,
@@ -172,7 +173,7 @@ async function syncTransactionsForItem(itemId: string, newTransactions: number) 
           amount: plaidTransaction.amount,
           date: new Date(plaidTransaction.date),
           name: plaidTransaction.name,
-          category: plaidTransaction.category?.[0] || null,
+          category: extractPlaidCategory(plaidTransaction),
           pending: plaidTransaction.pending,
           merchantName: plaidTransaction.merchant_name || null,
           location: plaidTransaction.location || null,

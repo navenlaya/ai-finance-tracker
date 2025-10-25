@@ -4,6 +4,7 @@ import { plaidClient } from '@/lib/plaid/client'
 import { decrypt } from '@/lib/utils/encryption'
 import { db } from '@/lib/db'
 import { TransactionsSyncRequest } from 'plaid'
+import { extractPlaidCategory } from '@/lib/plaid/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
                 amount: plaidTransaction.amount,
                 date: new Date(plaidTransaction.date),
                 name: plaidTransaction.name,
-                category: plaidTransaction.category?.[0] || null,
+                category: extractPlaidCategory(plaidTransaction),
                 pending: plaidTransaction.pending,
               },
             })
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
             await db.transaction.update({
               where: { id: existingTransaction.id },
               data: {
-                category: plaidTransaction.category?.[0] || null,
+                category: extractPlaidCategory(plaidTransaction),
                 pending: plaidTransaction.pending,
                 updatedAt: new Date(),
               },

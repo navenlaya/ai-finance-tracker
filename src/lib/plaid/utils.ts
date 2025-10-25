@@ -21,6 +21,25 @@ import {
 } from 'lucide-react'
 
 /**
+ * Extract category from Plaid transaction data
+ * Handles both old and new Plaid category formats
+ */
+export function extractPlaidCategory(plaidTransaction: any): string | null {
+  // Try the newer personal_finance_category format first
+  if (plaidTransaction.personal_finance_category?.primary) {
+    return plaidTransaction.personal_finance_category.primary
+  }
+  
+  // Fall back to the older category array format
+  if (plaidTransaction.category?.[0]) {
+    return plaidTransaction.category[0]
+  }
+  
+  // Return null if no category found
+  return null
+}
+
+/**
  * Formats a Plaid transaction to match our database schema
  * @param plaidTransaction - Transaction from Plaid API
  * @param accountId - The account ID this transaction belongs to
@@ -32,7 +51,7 @@ export function formatPlaidTransaction(plaidTransaction: any, accountId: string)
     amount: plaidTransaction.amount,
     date: new Date(plaidTransaction.date),
     name: plaidTransaction.name,
-    category: plaidTransaction.category?.[0] || null,
+    category: extractPlaidCategory(plaidTransaction),
     pending: plaidTransaction.pending,
     merchantName: plaidTransaction.merchant_name || null,
     location: plaidTransaction.location ? {
