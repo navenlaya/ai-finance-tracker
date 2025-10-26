@@ -2,14 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs'
 import { db } from '@/lib/db'
 import { generateInsightsWithCaching } from '@/lib/ai/insights'
+import { handleApiError, createSuccessResponse, ErrorMessages, ErrorCodes } from '@/lib/utils/error-handling'
+import { validateRequestBody, generateInsightsSchema } from '@/lib/validation/schemas'
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = auth()
     
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: ErrorMessages.UNAUTHORIZED, code: ErrorCodes.UNAUTHORIZED },
+        { status: 401 }
+      )
     }
+
+    // Validate request body
+    const body = await request.json()
+    const { forceRefresh } = validateRequestBody(generateInsightsSchema, body)
 
     // Get accounts, transactions, and existing insights in parallel to reduce database connections
     const [accounts, existingInsights] = await Promise.all([
@@ -126,31 +135,6 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error generating insights:', error)
-    
-    if (error instanceof Error) {
-      // Handle specific AI service errors
-      if (error.message.includes('AI service is temporarily busy')) {
-        return NextResponse.json({ 
-          error: 'AI service is temporarily busy. Please try again in a moment.' 
-        }, { status: 503 })
-      }
-      
-      if (error.message.includes('quota exceeded')) {
-        return NextResponse.json({ 
-          error: 'AI service quota exceeded. Please try again later.' 
-        }, { status: 429 })
-      }
-      
-      if (error.message.includes('configuration error')) {
-        return NextResponse.json({ 
-          error: 'AI service configuration error. Please contact support.' 
-        }, { status: 500 })
-      }
-    }
-    
-    return NextResponse.json({ 
-      error: 'Failed to generate insights. Please try again.' 
-    }, { status: 500 })
+    return handleApiError(error)
   }
 }
