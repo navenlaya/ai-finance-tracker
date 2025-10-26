@@ -55,32 +55,12 @@ export function TransactionList({ transactions, isLoading = false, className = '
     )
   }
 
-  // Calculate total for display
-  const totalAmount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0)
-
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 ${className}`}>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
-          <div className="text-sm text-gray-600">
-            Total: <span className="font-medium">{formatCurrency(Math.abs(totalAmount))}</span>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          {transactions.slice(0, 10).map((transaction) => (
-            <TransactionItem key={transaction.id} transaction={transaction} />
-          ))}
-        </div>
-        
-        {transactions.length > 10 && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View all {transactions.length} transactions →
-            </button>
-          </div>
-        )}
+    <div className={className}>
+      <div className="space-y-3">
+        {transactions.map((transaction) => (
+          <TransactionItem key={transaction.id} transaction={transaction} />
+        ))}
       </div>
     </div>
   )

@@ -29,7 +29,7 @@ export function TotalSpendingCard({ transactions, className = '' }: TotalSpendin
   const changeBgColor = isIncrease ? 'bg-red-50' : 'bg-green-50'
   
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Total Spending</h3>
         <CreditCard className="w-6 h-6 text-gray-400" />

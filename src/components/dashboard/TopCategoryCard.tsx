@@ -17,7 +17,7 @@ export function TopCategoryCard({ transactions, className = '' }: TopCategoryCar
   
   if (Object.keys(categoryTotals).length === 0) {
     return (
-      <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Category</h3>
         <div className="flex flex-col items-center justify-center h-32 text-gray-500">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
@@ -42,7 +42,7 @@ export function TopCategoryCard({ transactions, className = '' }: TopCategoryCar
   const CategoryIcon = getCategoryIcon(categoryName)
   
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Top Category</h3>
         <CategoryIcon className="w-6 h-6 text-gray-400" />

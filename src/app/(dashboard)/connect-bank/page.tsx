@@ -239,7 +239,7 @@ export default function ConnectBankPage() {
           </div>
 
           {/* Test Credentials Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <h4 className="font-semibold text-blue-900 mb-2">Testing with Plaid Sandbox</h4>
             <p className="text-blue-800 text-sm mb-2">
               Use these test credentials when prompted:
@@ -296,7 +296,7 @@ export default function ConnectBankPage() {
               {accounts.map((account) => (
                 <div
                   key={account.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center space-x-3">
                     <CreditCard className="h-8 w-8 text-blue-600" />

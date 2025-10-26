@@ -8,6 +8,7 @@ import {
   Heart,
   Plane,
   TrendingUp,
+  TrendingDown,
   MoreHorizontal,
   CreditCard,
   Home,
@@ -20,6 +21,7 @@ import {
   Gift,
   DollarSign,
   PiggyBank,
+  Shield,
   type LucideIcon
 } from 'lucide-react'
 
@@ -58,28 +60,60 @@ export interface DailySpending {
   net: number
 }
 
-// Category icon mapping
+// Category icon mapping - based on Plaid's personal_finance_category primary codes
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  'Food & Dining': UtensilsCrossed,
-  'Shopping': ShoppingBag,
+  // Plaid primary categories (uppercase with underscores)
+  'FOOD_AND_DRINK': UtensilsCrossed,
+  'GENERAL_MERCHANDISE': ShoppingBag,
+  'GENERAL_SERVICES': Receipt,
+  'GOVERNMENT_AND_NON_PROFIT': Shield,
+  'HOME_IMPROVEMENT': Home,
+  'MEDICAL': Heart,
+  'TRANSPORTATION': Car,
+  'TRAVEL': Plane,
+  'ENTERTAINMENT': Film,
+  'INCOME': TrendingUp,
+  'BANK_FEES': DollarSign,
+  'LOAN_PAYMENTS': TrendingDown,
+  'FINANCIAL': DollarSign,
+  'GENERAL': MoreHorizontal,
+  
+  // Plaid legacy category array format
+  'Food and Drink': UtensilsCrossed,
+  'General Merchandise': ShoppingBag,
+  'General Services': Receipt,
+  'Government and Non-Profit': Shield,
+  'Home Improvement': Home,
+  'Medical': Heart,
   'Transportation': Car,
-  'Entertainment': Film,
-  'Bills & Utilities': Receipt,
-  'Healthcare': Heart,
   'Travel': Plane,
+  'Entertainment': Film,
   'Income': TrendingUp,
-  'Other': MoreHorizontal,
-  'Credit Card': CreditCard,
-  'Housing': Home,
+  'Bank Fees': DollarSign,
+  'General': MoreHorizontal,
+  
+  // Common human-readable names (for compatibility)
+  'Food': UtensilsCrossed,
+  'Dining': UtensilsCrossed,
+  'Restaurants': UtensilsCrossed,
+  'Shopping': ShoppingBag,
+  'Groceries': ShoppingBag,
+  'Supermarket': ShoppingBag,
+  'Bills': Receipt,
+  'Utilities': Receipt,
+  'Healthcare': Heart,
   'Games': Gamepad2,
   'Education': BookOpen,
   'Coffee': Coffee,
-  'Utilities': Zap,
-  'School': GraduationCap,
+  'Housing': Home,
+  'Rent': Home,
+  'Mortgage': Home,
   'Business': Briefcase,
   'Gifts': Gift,
   'Financial': DollarSign,
   'Savings': PiggyBank,
+  'Gas': Car,
+  'Parking': Car,
 }
 
 /**
@@ -277,9 +311,99 @@ export function formatCurrency(amount: number): string {
 
 /**
  * Get category icon
+ * Handles Plaid's category formats: personal_finance_category.primary (e.g., "FOOD_AND_DRINK")
+ * and legacy category array format (e.g., "Food and Drink")
  */
 export function getCategoryIcon(category: string): LucideIcon {
-  return CATEGORY_ICONS[category] || MoreHorizontal
+  if (!category) return MoreHorizontal
+  
+  // Try exact match first (for Plaid uppercase codes and any exact matches)
+  if (CATEGORY_ICONS[category]) {
+    return CATEGORY_ICONS[category]
+  }
+  
+  // Try case-insensitive match
+  const lowerCategory = category.toLowerCase()
+  for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
+    if (key.toLowerCase() === lowerCategory) {
+      return icon
+    }
+  }
+  
+  // Handle Plaid's personal_finance_category format (uppercase with underscores)
+  // Try to match partial patterns from Plaid categories
+  const upperCategory = category.toUpperCase()
+  if (upperCategory.includes('FOOD') || upperCategory.includes('DRINK') || upperCategory.includes('RESTAURANT')) {
+    return UtensilsCrossed
+  }
+  if (upperCategory.includes('TRANSPORT') || upperCategory.includes('GAS') || upperCategory.includes('AUTOMOTIVE')) {
+    return Car
+  }
+  if (upperCategory.includes('ENTERTAINMENT') || upperCategory.includes('RECREATION')) {
+    return Film
+  }
+  if (upperCategory.includes('HOME') || upperCategory.includes('HOUSING') || upperCategory.includes('RENT')) {
+    return Home
+  }
+  if (upperCategory.includes('MEDICAL') || upperCategory.includes('HEALTH')) {
+    return Heart
+  }
+  if (upperCategory.includes('TRAVEL') || upperCategory.includes('TICKET') || upperCategory.includes('HOTEL')) {
+    return Plane
+  }
+  if (upperCategory.includes('MERCHANDISE') || upperCategory.includes('SHOPPING') || upperCategory.includes('GENERAL_MERCHANDISE')) {
+    return ShoppingBag
+  }
+  if (upperCategory.includes('SERVICE') || upperCategory.includes('UTILITY') || upperCategory.includes('GENERAL_SERVICES')) {
+    return Receipt
+  }
+  if (upperCategory.includes('LOAN') || upperCategory.includes('PAYMENT') || upperCategory.includes('REPAYMENT')) {
+    return TrendingDown
+  }
+  if (upperCategory.includes('INCOME') || upperCategory.includes('SALARY') || upperCategory.includes('DEPOSIT')) {
+    return TrendingUp
+  }
+  if (upperCategory.includes('FINANCIAL') || upperCategory.includes('FEE') || upperCategory.includes('BANK')) {
+    return DollarSign
+  }
+  
+  // Try partial match for common patterns (lowercase)
+  if (lowerCategory.includes('food') || lowerCategory.includes('dining') || lowerCategory.includes('restaurant') || lowerCategory.includes('grocery') || lowerCategory.includes('cafe')) {
+    return UtensilsCrossed
+  }
+  if (lowerCategory.includes('shopping') || lowerCategory.includes('store') || lowerCategory.includes('retail') || lowerCategory.includes('merchandise')) {
+    return ShoppingBag
+  }
+  if (lowerCategory.includes('transport') || lowerCategory.includes('car') || lowerCategory.includes('gas') || lowerCategory.includes('parking') || lowerCategory.includes('automotive')) {
+    return Car
+  }
+  if (lowerCategory.includes('entertainment') || lowerCategory.includes('movie') || lowerCategory.includes('game') || lowerCategory.includes('recreation')) {
+    return Film
+  }
+  if (lowerCategory.includes('bill') || lowerCategory.includes('utility') || lowerCategory.includes('electric') || lowerCategory.includes('water') || lowerCategory.includes('internet')) {
+    return Receipt
+  }
+  if (lowerCategory.includes('health') || lowerCategory.includes('medical') || lowerCategory.includes('doctor') || lowerCategory.includes('pharmacy')) {
+    return Heart
+  }
+  if (lowerCategory.includes('travel') || lowerCategory.includes('hotel') || lowerCategory.includes('flight') || lowerCategory.includes('ticket')) {
+    return Plane
+  }
+  if (lowerCategory.includes('loan') || lowerCategory.includes('payment') || lowerCategory.includes('repayment') || lowerCategory.includes('debt')) {
+    return TrendingDown
+  }
+  if (lowerCategory.includes('income') || lowerCategory.includes('salary') || lowerCategory.includes('deposit')) {
+    return TrendingUp
+  }
+  if (lowerCategory.includes('financial') || lowerCategory.includes('fee') || lowerCategory.includes('bank')) {
+    return DollarSign
+  }
+  if (lowerCategory.includes('housing') || lowerCategory.includes('rent') || lowerCategory.includes('home') || lowerCategory.includes('mortgage')) {
+    return Home
+  }
+  
+  // Default to other icon
+  return MoreHorizontal
 }
 
 /**

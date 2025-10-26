@@ -60,7 +60,7 @@ export function SpendingTrendChart({ transactions, className = '' }: SpendingTre
   
   if (dailyData.length === 0) {
     return (
-      <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Spending Trend</h3>
           <div className="flex gap-2">
@@ -102,7 +102,7 @@ export function SpendingTrendChart({ transactions, className = '' }: SpendingTre
   })
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Spending Trend</h3>
         <div className="flex gap-2">

@@ -155,8 +155,7 @@ export default function TransactionsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="space-y-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
@@ -165,7 +164,7 @@ export default function TransactionsPage() {
         
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Transactions</p>
@@ -175,7 +174,7 @@ export default function TransactionsPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Amount</p>
@@ -187,7 +186,7 @@ export default function TransactionsPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Income</p>
@@ -199,7 +198,7 @@ export default function TransactionsPage() {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Expenses</p>
@@ -243,7 +242,6 @@ export default function TransactionsPage() {
             Showing {filteredTransactions.length} of {transactions.length} transactions
           </div>
         )}
-      </div>
     </div>
   )
 }

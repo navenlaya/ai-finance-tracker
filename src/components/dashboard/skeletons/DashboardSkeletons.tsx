@@ -18,7 +18,7 @@ export function DashboardSkeleton() {
       {/* Summary Cards Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
+          <div key={index} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="h-5 bg-gray-200 rounded w-24 animate-pulse"></div>
               <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
@@ -33,7 +33,7 @@ export function DashboardSkeleton() {
       </div>
 
       {/* AI Insights Skeleton */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
           <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
@@ -57,7 +57,7 @@ export function DashboardSkeleton() {
 
       {/* Charts Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <div className="flex justify-between items-center mb-4">
             <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
             <div className="flex gap-2">
@@ -70,11 +70,11 @@ export function DashboardSkeleton() {
         </div>
         
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="h-6 bg-gray-200 rounded w-40 mb-4 animate-pulse"></div>
             <div className="h-80 bg-gray-200 rounded animate-pulse"></div>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="h-6 bg-gray-200 rounded w-40 mb-4 animate-pulse"></div>
             <div className="h-80 bg-gray-200 rounded animate-pulse"></div>
           </div>
@@ -82,7 +82,7 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Transactions Skeleton */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
           <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
@@ -108,7 +108,7 @@ export function DashboardSkeleton() {
 
 export function ChartSkeleton({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <div className="h-6 bg-gray-200 rounded w-40 mb-4 animate-pulse"></div>
       <div className="h-80 bg-gray-200 rounded animate-pulse"></div>
     </div>
@@ -117,7 +117,7 @@ export function ChartSkeleton({ className = '' }: { className?: string }) {
 
 export function CardSkeleton({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="h-5 bg-gray-200 rounded w-24 animate-pulse"></div>
         <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>

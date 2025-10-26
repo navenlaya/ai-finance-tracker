@@ -64,7 +64,7 @@ export function SpendingByCategoryChart({ transactions, className = '' }: Spendi
   
   if (categoryData.length === 0) {
     return (
-      <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending by Category</h3>
         <div className="flex flex-col items-center justify-center h-64 text-gray-500">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -87,7 +87,7 @@ export function SpendingByCategoryChart({ transactions, className = '' }: Spendi
   }))
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending by Category</h3>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">

@@ -15,7 +15,7 @@ export function LargestTransactionCard({ transactions, className = '' }: Largest
   
   if (!largestTransaction) {
     return (
-      <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Largest Transaction</h3>
         <div className="flex flex-col items-center justify-center h-32 text-gray-500">
           <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
@@ -32,7 +32,7 @@ export function LargestTransactionCard({ transactions, className = '' }: Largest
   const amountColor = isExpense ? 'text-red-600' : 'text-green-600'
   
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Largest Transaction</h3>
         <Receipt className="w-6 h-6 text-gray-400" />
