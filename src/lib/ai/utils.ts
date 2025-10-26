@@ -1,15 +1,18 @@
 import { Transaction } from '@prisma/client'
 
 /**
- * Format transactions for AI analysis - only include necessary fields
+ * Format expense transactions for AI analysis - only include necessary fields
  * Limits to last 30 days and max 50 transactions to stay within token limits
+ * Only includes EXPENSES (positive amounts in Plaid format)
  */
 export function formatTransactionsForAI(transactions: Transaction[]): string {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   
-  const filteredTransactions = transactions
-    .filter(t => t.date >= thirtyDaysAgo)
+  // Filter to only expenses (positive amounts in Plaid format)
+  // Plaid format: positive amount = money out (expense), negative = money in (income)
+  const expenseTransactions = transactions
+    .filter(t => t.amount > 0 && t.date >= thirtyDaysAgo)
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 50) // Limit to 50 most recent transactions
     .map(t => ({
@@ -19,7 +22,27 @@ export function formatTransactionsForAI(transactions: Transaction[]): string {
       name: t.name,
     }))
   
-  return JSON.stringify(filteredTransactions, null, 2)
+  return JSON.stringify(expenseTransactions, null, 2)
+}
+
+/**
+ * Format income transactions for AI context (for budget recommendations)
+ */
+export function formatIncomeForAI(transactions: Transaction[]): { totalIncome: number; count: number } {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  
+  // Filter to only income (negative amounts in Plaid format)
+  const incomeTransactions = transactions
+    .filter(t => t.amount < 0 && t.date >= thirtyDaysAgo)
+    .map(t => Math.abs(t.amount))
+  
+  const totalIncome = incomeTransactions.reduce((sum, amount) => sum + amount, 0)
+  
+  return {
+    totalIncome,
+    count: incomeTransactions.length
+  }
 }
 
 /**
@@ -123,12 +146,15 @@ export function sanitizeInsightContent(content: string): string {
 }
 
 /**
- * Calculate total spending by category
+ * Calculate total spending by category (expenses only)
  */
 export function calculateSpendingByCategory(transactions: Transaction[]): Record<string, number> {
-  return transactions.reduce((totals, transaction) => {
+  // Filter to only expenses (positive amounts in Plaid format)
+  const expenseTransactions = transactions.filter(t => t.amount > 0)
+  
+  return expenseTransactions.reduce((totals, transaction) => {
     const category = transaction.category || 'uncategorized'
-    totals[category] = (totals[category] || 0) + Math.abs(transaction.amount)
+    totals[category] = (totals[category] || 0) + transaction.amount
     return totals
   }, {} as Record<string, number>)
 }

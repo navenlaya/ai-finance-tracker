@@ -97,12 +97,16 @@ export function groupTransactionsByCategory(transactions: Transaction[]): Record
 }
 
 /**
- * Calculate total spending by category
+ * Calculate total spending by category (expenses only)
  */
 export function calculateCategoryTotals(transactions: Transaction[]): Record<string, number> {
-  const grouped = groupTransactionsByCategory(transactions)
+  // Filter to only expenses (positive amounts in Plaid format)
+  // Plaid format: positive amount = money out (expense), negative = money in (income)
+  const expenseTransactions = transactions.filter(t => t.amount > 0)
+  
+  const grouped = groupTransactionsByCategory(expenseTransactions)
   return Object.entries(grouped).reduce((acc, [category, categoryTransactions]) => {
-    acc[category] = categoryTransactions.reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0)
+    acc[category] = categoryTransactions.reduce((sum, transaction) => sum + transaction.amount, 0)
     return acc
   }, {} as Record<string, number>)
 }

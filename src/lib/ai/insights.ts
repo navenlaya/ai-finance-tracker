@@ -15,12 +15,14 @@ export async function generateSpendingAnalysis(transactions: Transaction[]): Pro
   const spendingByCategory = calculateSpendingByCategory(transactions)
   const monthlyAverages = calculateMonthlyAverages(transactions)
 
-  const prompt = `You are a financial advisor AI. Analyze these recent transactions and provide specific, actionable insights.
+  const prompt = `You are a financial advisor AI. Analyze these EXPENSE transactions and provide specific, actionable insights.
 
-Recent transactions (last 30 days):
+IMPORTANT: These are EXPENSE transactions only (money spent). Income/deposits are tracked separately.
+
+Expense transactions (last 30 days):
 ${transactionsData}
 
-Focus on spending patterns, unusual expenses, and optimization opportunities.
+Focus on spending patterns, unusual expenses, and optimization opportunities. Do NOT treat income as spending.
 
 Return ONLY valid JSON (no markdown, no code blocks, no explanations) in this EXACT format:
 {
@@ -66,7 +68,7 @@ Requirements:
     // Validate and filter insights
     const validInsights = parsed.insights.filter(validateInsight)
     
-    return validInsights.map(insight => ({
+    return validInsights.map((insight: any) => ({
       ...insight,
       category: insight.category as AIInsight['category'],
       priority: insight.priority as AIInsight['priority'],
@@ -93,13 +95,15 @@ export async function generateBudgetRecommendations(
   const spendingByCategory = calculateSpendingByCategory(transactions)
   const monthlyAverages = calculateMonthlyAverages(transactions)
 
-  const prompt = `You are a financial advisor AI. Analyze these transactions and suggest realistic monthly budgets.
+  const prompt = `You are a financial advisor AI. Analyze these EXPENSE transactions and suggest realistic monthly budgets.
 
-Recent transactions:
+IMPORTANT: These are EXPENSE transactions only (money spent). Income/deposits are tracked separately.
+
+Expense transactions (last 30 days):
 ${transactionsData}
-${monthlyIncome ? `Monthly income: $${monthlyIncome}` : 'Monthly income: Not provided'}
+${monthlyIncome ? `Monthly income: $${monthlyIncome.toFixed(2)}` : 'Monthly income: Not provided'}
 
-Focus on realistic budget recommendations per category with specific dollar amounts.
+Focus on realistic budget recommendations per category with specific dollar amounts. Consider income when making recommendations but only analyze expense patterns.
 
 Return ONLY valid JSON (no markdown, no code blocks, no explanations) in this EXACT format:
 {
@@ -140,7 +144,7 @@ Requirements:
       throw new Error('Invalid response format from AI')
     }
 
-    return parsed.recommendations.map(rec => ({
+    return parsed.recommendations.map((rec: any) => ({
       ...rec,
       priority: rec.priority as 'high' | 'medium' | 'low'
     }))
@@ -161,12 +165,14 @@ export async function generateSavingsOpportunities(transactions: Transaction[]):
   const transactionsData = formatTransactionsForAI(transactions)
   const recurringSavings = calculateRecurringSavings(transactions)
 
-  const prompt = `You are a financial advisor AI. Identify specific savings opportunities from these transactions.
+  const prompt = `You are a financial advisor AI. Identify specific savings opportunities from these EXPENSE transactions.
 
-Recent transactions:
+IMPORTANT: These are EXPENSE transactions only (money spent). Income/deposits are tracked separately.
+
+Expense transactions (last 30 days):
 ${transactionsData}
 
-Focus on recurring subscriptions, expensive habits, and specific actions to save money.
+Focus on recurring subscriptions, expensive habits, and specific actions to save money. Do NOT treat income as spending.
 
 Return ONLY valid JSON (no markdown, no code blocks, no explanations) in this EXACT format:
 {
@@ -208,7 +214,7 @@ Requirements:
       throw new Error('Invalid response format from AI')
     }
 
-    return parsed.opportunities.map(opp => ({
+    return parsed.opportunities.map((opp: any) => ({
       ...opp,
       difficulty: opp.difficulty as 'easy' | 'medium' | 'hard'
     }))

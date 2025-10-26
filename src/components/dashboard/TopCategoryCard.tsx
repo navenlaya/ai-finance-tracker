@@ -8,7 +8,11 @@ interface TopCategoryCardProps {
 }
 
 export function TopCategoryCard({ transactions, className = '' }: TopCategoryCardProps) {
-  const currentMonthTransactions = getCurrentMonthTransactions(transactions)
+  // Filter to only expense transactions (positive amounts in Plaid format)
+  // Plaid format: positive amount = money out (expense), negative = money in (income)
+  const expenseTransactions = transactions.filter(t => t.amount > 0)
+  
+  const currentMonthTransactions = getCurrentMonthTransactions(expenseTransactions)
   const categoryTotals = calculateCategoryTotals(currentMonthTransactions)
   
   if (Object.keys(categoryTotals).length === 0) {
