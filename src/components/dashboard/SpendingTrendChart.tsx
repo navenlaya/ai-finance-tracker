@@ -14,14 +14,11 @@ type TimeRange = '7d' | '30d' | '90d'
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
-    // Validate and format the date safely
-    const dateValue = label ? new Date(label) : new Date()
-    const isValidDate = !isNaN(dateValue.getTime())
-    const date = isValidDate ? format(dateValue, 'MMM dd, yyyy') : 'Invalid Date'
     
+    // Label is the formatted date (e.g., "Oct 26") - display it as is
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="font-semibold text-gray-900">{date}</p>
+        <p className="font-semibold text-gray-900">{label || 'Unknown Date'}</p>
         <div className="space-y-1">
           <p className="text-sm">
             <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
@@ -93,13 +90,20 @@ export function SpendingTrendChart({ transactions, className = '' }: SpendingTre
   }
 
   const chartData = dailyData.map(item => {
-    const dateValue = new Date(item.date)
+    // item.date is already in ISO format (YYYY-MM-DD) from calculateDailySpending
+    const dateValue = new Date(item.date + 'T00:00:00')
     const isValidDate = !isNaN(dateValue.getTime())
+    
+    if (!isValidDate) {
+      console.error('Invalid date:', item.date)
+      return null
+    }
+    
     return {
       ...item,
-      date: isValidDate ? format(dateValue, 'MMM dd') : 'Invalid Date'
+      date: format(dateValue, 'MMM dd')
     }
-  })
+  }).filter(Boolean)
 
   return (
     <div className={`bg-white rounded-xl border border-gray-200 shadow-sm p-6 ${className}`}>
