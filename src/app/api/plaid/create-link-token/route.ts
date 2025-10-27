@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { plaidClient } from '@/lib/plaid/client'
-import { LinkTokenCreateRequest } from 'plaid'
+import { Products, CountryCode } from 'plaid'
 
 export async function POST(request: NextRequest) {
   try {
     // Verify user authentication
-    const { userId } = auth()
+    const { userId } = await auth()
     
     if (!userId) {
       return NextResponse.json(
@@ -16,13 +16,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Create link token request
-    const linkTokenRequest: LinkTokenCreateRequest = {
+    const linkTokenRequest = {
       user: {
         client_user_id: userId,
       },
       client_name: 'AI Finance Tracker',
-      products: ['transactions', 'auth'],
-      country_codes: ['US'],
+      products: ['transactions' as Products.Transactions, 'auth' as Products.Auth],
+      country_codes: ['US' as CountryCode.Us],
       language: 'en',
       webhook: process.env.PLAID_WEBHOOK_URL || undefined,
     }

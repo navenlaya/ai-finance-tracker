@@ -41,7 +41,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-export function SpendingTrendChart({ transactions, className = '' }: SpendingTrendChartProps) {
+export default function SpendingTrendChart({ transactions, className = '' }: SpendingTrendChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('30d')
   
   const getDays = (range: TimeRange): number => {

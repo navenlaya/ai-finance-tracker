@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, currentUser } from '@clerk/nextjs'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { plaidClient } from '@/lib/plaid/client'
 import { encrypt } from '@/lib/utils/encryption'
 import { db } from '@/lib/db'

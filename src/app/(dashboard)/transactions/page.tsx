@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Transaction } from '@prisma/client'
 import { TransactionFilters, TransactionFilters as TransactionFiltersComponent } from '@/components/transactions/TransactionFilters'
-import { TransactionList } from '@/components/transactions/TransactionList'
+import TransactionList from '@/components/transactions/TransactionList'
 import { formatCurrency, calculateIncomeVsExpenses } from '@/lib/utils/transactions'
 import { Download, Search } from 'lucide-react'
 

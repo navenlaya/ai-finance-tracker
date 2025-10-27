@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { plaidClient } from '@/lib/plaid/client'
 import { decrypt } from '@/lib/utils/encryption'
 import { db } from '@/lib/db'
@@ -115,9 +115,7 @@ export async function POST(request: NextRequest) {
           await db.transaction.deleteMany({
             where: {
               accountId: account.id,
-              name: removedTransaction.name,
-              amount: removedTransaction.amount,
-              date: new Date(removedTransaction.date),
+              plaidTransactionId: removedTransaction.transaction_id || undefined,
             },
           })
         }

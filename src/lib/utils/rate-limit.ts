@@ -108,11 +108,15 @@ export function checkRateLimit(userId: string, endpoint: string): {
  */
 function cleanupExpiredEntries(): void {
   const now = Date.now()
-  for (const [key, entry] of rateLimitStore.entries()) {
+  const keysToDelete: string[] = []
+  
+  rateLimitStore.forEach((entry, key) => {
     if (now > entry.resetTime) {
-      rateLimitStore.delete(key)
+      keysToDelete.push(key)
     }
-  }
+  })
+  
+  keysToDelete.forEach(key => rateLimitStore.delete(key))
 }
 
 /**

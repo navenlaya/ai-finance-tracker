@@ -9,7 +9,7 @@ interface TransactionListProps {
   className?: string
 }
 
-export function TransactionList({ transactions, isLoading = false, className = '' }: TransactionListProps) {
+export default function TransactionList({ transactions, isLoading = false, className = '' }: TransactionListProps) {
   if (isLoading) {
     return (
       <div className={`bg-white rounded-lg border border-gray-200 ${className}`}>

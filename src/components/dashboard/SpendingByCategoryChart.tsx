@@ -59,7 +59,7 @@ const CustomLegend = ({ payload }: any) => {
   )
 }
 
-export function SpendingByCategoryChart({ transactions, className = '' }: SpendingByCategoryChartProps) {
+export default function SpendingByCategoryChart({ transactions, className = '' }: SpendingByCategoryChartProps) {
   const categoryData = getCategoryData(transactions, 8)
   
   if (categoryData.length === 0) {

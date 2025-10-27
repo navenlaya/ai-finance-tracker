@@ -202,7 +202,7 @@ export const RETRY_CONFIG = {
  * @returns Retry configuration or null if no retry should be attempted
  */
 export function getRetryConfig(errorCode: string): { maxRetries: number; delay: number } | null {
-  return RETRY_CONFIG[errorCode] || null
+  return RETRY_CONFIG[errorCode as keyof typeof RETRY_CONFIG] || null
 }
 
 /**
