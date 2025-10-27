@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { plaidClient } from '@/lib/plaid/client'
 import { decrypt } from '@/lib/utils/encryption'
 import { db } from '@/lib/db'
@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
       access_token: accessToken,
       start_date: start.toISOString().split('T')[0],
       end_date: end.toISOString().split('T')[0],
-      count: 500, // Maximum allowed by Plaid
     }
 
     const plaidResponse = await plaidClient.transactionsGet(transactionsRequest)

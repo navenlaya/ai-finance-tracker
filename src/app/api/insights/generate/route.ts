@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { generateInsightsWithCaching } from '@/lib/ai/insights'
 import { handleApiError, createSuccessResponse, ErrorMessages, ErrorCodes } from '@/lib/utils/error-handling'

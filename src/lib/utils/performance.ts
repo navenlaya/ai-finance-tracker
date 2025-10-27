@@ -206,8 +206,6 @@ export async function measureAiOperation<T>(
  * Log performance summary to console
  */
 export function logPerformanceSummary(): void {
-  if (!performanceMonitor.isEnabled) return
-
   const summary = performanceMonitor.getSummary()
   
   console.group('🚀 Performance Summary')

@@ -222,7 +222,8 @@ export function getLastNDays(n: number): { startDate: Date; endDate: Date } {
  */
 export function getCurrentMonthRange(): { startDate: Date; endDate: Date } {
   const now = new Date()
-  return getMonthBounds(now)
+  const bounds = getMonthBounds(now)
+  return { startDate: bounds.start, endDate: bounds.end }
 }
 
 /**
@@ -230,5 +231,6 @@ export function getCurrentMonthRange(): { startDate: Date; endDate: Date } {
  */
 export function getPreviousMonthRange(): { startDate: Date; endDate: Date } {
   const previousMonth = subMonths(new Date(), 1)
-  return getMonthBounds(previousMonth)
+  const bounds = getMonthBounds(previousMonth)
+  return { startDate: bounds.start, endDate: bounds.end }
 }

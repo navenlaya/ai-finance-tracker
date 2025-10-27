@@ -116,10 +116,11 @@ export function validateRequestBody<T>(schema: z.ZodSchema<T>, data: unknown): T
     return schema.parse(data)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map(err => ({
-        field: err.path.join('.'),
+      const issues = error.issues || []
+      const errorMessages = issues.map((err: any) => ({
+        field: (err.path || []).join('.'),
         message: err.message,
-        code: err.code
+        code: err.code || 'VALIDATION_ERROR'
       }))
       
       throw new Error(`Validation failed: ${errorMessages.map(e => `${e.field}: ${e.message}`).join(', ')}`)

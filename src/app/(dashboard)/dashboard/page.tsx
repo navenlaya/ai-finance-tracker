@@ -28,9 +28,9 @@ import {
 import { Transaction } from '@prisma/client'
 
 // Import new dashboard components
-import { SpendingByCategoryChart } from '@/components/dashboard/SpendingByCategoryChart'
-import { SpendingTrendChart } from '@/components/dashboard/SpendingTrendChart'
-import { TransactionList } from '@/components/transactions/TransactionList'
+import SpendingByCategoryChart from '@/components/dashboard/SpendingByCategoryChart'
+import SpendingTrendChart from '@/components/dashboard/SpendingTrendChart'
+import TransactionList from '@/components/transactions/TransactionList'
 
 interface Account {
   id: string

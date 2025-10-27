@@ -42,7 +42,7 @@ export function createErrorResponse(
   code: string = 'INTERNAL_ERROR',
   details?: any
 ): NextResponse {
-  const errorResponse: ApiError = {
+  const errorResponse = {
     error,
     message,
     code,
@@ -61,10 +61,11 @@ export function handleApiError(error: unknown): NextResponse {
 
   // Zod validation errors
   if (error instanceof ZodError) {
-    const validationErrors = error.errors.map(err => ({
-      field: err.path.join('.'),
+    const issues = error.issues || []
+    const validationErrors = issues.map((err: any) => ({
+      field: (err.path || []).join('.'),
       message: err.message,
-      code: err.code
+      code: err.code || 'VALIDATION_ERROR'
     }))
 
     return createErrorResponse(
