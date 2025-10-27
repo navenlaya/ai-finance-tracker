@@ -20,11 +20,11 @@ export default function HomePage() {
             Connect your bank accounts securely and get intelligent insights about your spending patterns, 
             budget recommendations, and financial health.
           </p>
-          <Link href="/sign-up">
+          {/* <Link href="/sign-up">
             <Button size="lg" className="text-lg px-8 py-6">
               Get Started Free
             </Button>
-          </Link>
+          </Link> */}
         </section>
 
         {/* Features Section */}
@@ -110,7 +110,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="text-center bg-white rounded-2xl p-12 shadow-lg">
+        {/* <section className="text-center bg-white rounded-2xl p-12 shadow-lg">
           <h2 className="text-3xl font-bold mb-4">Ready to Take Control of Your Finances?</h2>
           <p className="text-xl text-gray-600 mb-8">
             Join thousands of users who are already making smarter financial decisions.
@@ -120,18 +120,18 @@ export default function HomePage() {
               Start Your Free Trial
             </Button>
           </Link>
-        </section>
+        </section> */}
       </main>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="h-8 w-8 rounded-lg bg-primary"></div>
+            <img src="/logo.png" alt="AI Finance Tracker" className="h-8 w-8" />
             <span className="text-xl font-bold">AI Finance Tracker</span>
           </div>
           <p className="text-gray-400">
-            © 2024 AI Finance Tracker. All rights reserved.
+            © 2025 AI Finance Tracker by Naven Christian Laya. All rights reserved.
           </p>
         </div>
       </footer>

@@ -15,7 +15,7 @@ export function Navigation() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center space-x-4">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-primary"></div>
+            <img src="/logo.png" alt="AI Finance Tracker" className="h-8 w-8" />
             <span className="text-xl font-bold hidden sm:inline">AI Finance Tracker</span>
           </Link>
         </div>
